@@ -40,6 +40,33 @@ end
 function init_p(n, p)
 		p.pressed={}
 
+		-- Sprites:
+		-- player 1 is sprites 1 and 17. 2 is 2 and 18. and so on.
+		p.draw=function()
+			local id=(n+1)
+			if (p.dir=="l") then id=n+16 end
+			spr(id, p.x, p.y)
+		end
+
+		-- set drawing-related props
+		p.dir="r"
+		p.x=16
+		p.y=16
+
+		p.act=function(dir)
+			if (dir==l) then p.move({-1,0}) end
+			if (dir==r) then p.move({1, 0}) end
+			--TODO:
+			-- handle jump
+			-- handle moving down ladders/drop down ledges
+			-- handle action buttons
+		end
+
+		p.move=function(mv)
+			p.x=p.x+mv[1]
+			p.y=p.y+mv[2]
+		end
+
 		function init_p_btns(k, v)
 			p.pressed[v]={}
 			p.pressed[v].last_pressed=nil
@@ -93,7 +120,7 @@ function update_p(n, p)
 					-- something like:
 					-- tapped(p, v)
 				else
-					-- normal action
+					p.act(v)
 				end
 				clearbtn()
 			else
@@ -106,7 +133,7 @@ function update_p(n, p)
 						-- something like
 						-- held(p, v)
 					else
-						-- normal action
+						p.act(v)
 					end
 				else
 					_btn.heldstart=time()
@@ -123,6 +150,12 @@ end
 
 function _draw()
 	cls()
+
+	function draw_p(n, p)
+		p.draw()
+	end
+
+	iterpool(p_pool, draw_p)
 
 	function debug_p(n, p)
 		function debug_p_btns(k, v)
