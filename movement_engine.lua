@@ -10,11 +10,9 @@ l,r,u,d,o,x="l","r","u","d","o","x"
 btn_prs={l, r, u, d, o, x}
 
 -- hold_t: how many secs to hold a button to trigger special
-hold_t=2
 -- dble_t: how many secs you have to tap a button again for it to trigger special
-dble_t=1
--- p_glyph: the character used when drawing the player when using print.
-p_glyph="\140"
+hold_t, dble_t=2, 1
+
 -------------------------------
 -- functional helpers
 function iterpool(pool, fn)
@@ -103,7 +101,7 @@ end
 function update_p(n, p)
 	-- check 4 press by player no.
 
-	function check_press(k, v)
+	iterpool(btn_prs, function (k, v)
 		local i=k-1 -- zero-indexed buttons
 		local pressed=p.pressed
 		local _btn=pressed[v]
@@ -162,21 +160,18 @@ function update_p(n, p)
 			-- maybe p.end(v) to trigger animations/fx
 			clearbtn()
 		end
-	end
-
-	iterpool(btn_prs, check_press)
-
+	end)
 end
 
 function _draw()
 	cls()
 
-	function draw_p(n, p)
+
+
+	iterpool(p_pool, function (n, p)
 		print(p.x .. " - " .. p.y, 24,20 * n)
 		p.draw()
-	end
-
-	iterpool(p_pool, draw_p)
+	end)
 
 	function debug_p(n, p)
 		function debug_p_btns(k, v)
