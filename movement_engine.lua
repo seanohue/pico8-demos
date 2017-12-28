@@ -4,8 +4,9 @@ cls()
 -- players pool
 p_pool={}
 p_pool[0],p_pool[1]={},{}
-l,r,u,d,o,x="l","r","u","d","o","x"
+
 -- possible button press results
+l,r,u,d,o,x="l","r","u","d","o","x"
 btn_prs={l, r, u, d, o, x}
 
 -- hold_t: how many secs to hold a button to trigger special
@@ -44,27 +45,42 @@ function init_p(n, p)
 		-- player 1 is sprites 1 and 17. 2 is 2 and 18. and so on.
 		p.draw=function()
 			local id=(n+1)
-			if (p.dir=="l") then id=n+16 end
+			if (p.dir==l) then id=n+16 end
 			spr(id, p.x, p.y)
 		end
 
 		-- set drawing-related props
-		p.dir="r"
+		p.dir=r
 		p.x=16
 		p.y=16
 
-		p.act=function(dir)
-			if (dir==l) then p.move({-1,0}) end
-			if (dir==r) then p.move({1, 0}) end
-			--TODO:
-			-- handle jump
-			-- handle moving down ladders/drop down ledges
-			-- handle action buttons
+		p.act=function(dir, type)
+			local mvs={
+				l={-1, 0},
+				r={1, 0},
+				u={0, -1},
+				d={0, 1}
+			}
+			if (type==nil) then
+				if (mvs[dir]) then
+					p.move(mvs[dir])
+				else
+				--TODO:
+				-- handle jump
+				-- handle moving down ladders/drop down ledges
+				-- handle action buttons
+				end
+			elseif (type=='dble') then
+				p.move(mvs[dir], 4) -- dash
+			elseif (type=='hold') then
+				p.move(mvs[dir], 1.5)	-- jog
+			end
 		end
 
-		p.move=function(mv)
-			p.x=p.x+mv[1]
-			p.y=p.y+mv[2]
+		p.move=function(mv, multi)
+			multi=multi or 1
+			p.x=p.x+(mv[1]*multi)
+			p.y=p.y+(mv[2]*multi)
 		end
 
 		function init_p_btns(k, v)
@@ -119,6 +135,7 @@ function update_p(n, p)
 					-- trigger tapped effect
 					-- something like:
 					-- tapped(p, v)
+					p.act(v, 'dble')
 				else
 					p.act(v)
 				end
@@ -132,14 +149,17 @@ function update_p(n, p)
 						-- trigger 'held' effect
 						-- something like
 						-- held(p, v)
+						p.act(v, 'hold')
 					else
 						p.act(v)
 					end
 				else
+					p.act(v)
 					_btn.heldstart=time()
 				end
 			end
 		else
+			-- maybe p.end(v) to trigger animations/fx
 			clearbtn()
 		end
 	end
@@ -152,6 +172,7 @@ function _draw()
 	cls()
 
 	function draw_p(n, p)
+		print(p.x .. " - " .. p.y, 24,20 * n)
 		p.draw()
 	end
 
